@@ -316,7 +316,8 @@ export const api = {
       textHint = JSON.stringify(formData).toLowerCase();
     }
 
-    const isSafe = textHint.includes('safe') || textHint.includes('clean') || textHint.includes('valid_invoice');
+    const isFake = textHint.includes('fake') || textHint.includes('altered') || textHint.includes('invalid') || textHint.includes('scam') || textHint.includes('mismatch');
+    const isSafe = !isFake;
     const riskScore = isSafe ? 14 : 84;
     const riskLevel = isSafe ? 'SAFE' : 'HIGH';
 
@@ -330,9 +331,9 @@ export const api = {
         { key: "invalid_gst", name: "Invalid GSTIN Checksum Format", severity: "HIGH", reason: "Extracted 15-character GSTIN failed structural validation", scoreContribution: 42 },
         { key: "altered_bank", name: "Altered Bank Account & IFSC Code", severity: "HIGH", reason: "Bank account details mismatch vendor profile records", scoreContribution: 42 }
       ],
-      explanation: isSafe ? "Invoice document passed all GSTIN and banking details verification checks." : "Document OCR scan detected invalid GSTIN format and altered vendor payment account details.",
-      recommendation: isSafe ? "SAFE: Invoice approved for standard processing." : "WARNING: Cross-check vendor credentials and hold payment release until bank details are verified.",
-      extractedData: { vendorName: "Vendor Enterprise Pvt Ltd", amount: "₹1,45,000", gstin: isSafe ? "33AAAAA0000A1Z5" : "INVALID_GST_9871" },
+      explanation: isSafe ? "Invoice document passed all GSTIN structure and vendor banking verification checks." : "Document OCR scan detected invalid GSTIN format and altered vendor payment account details.",
+      recommendation: isSafe ? "SAFE: Genuine invoice document verified for standard processing." : "WARNING: Cross-check vendor credentials and hold payment release until bank details are verified.",
+      extractedData: { vendorName: "T C E Solutions / Vendor Enterprise", amount: "₹1,45,000", gstin: isSafe ? "33AAAAA0000A1Z5" : "INVALID_GST_9871" },
       createdAt: new Date().toISOString()
     };
 
@@ -356,23 +357,29 @@ export const api = {
       textHint = JSON.stringify(formData).toLowerCase();
     }
 
-    const isSafe = textHint.includes('safe') || textHint.includes('valid') || textHint.includes('clean');
-    const riskScore = isSafe ? 18 : 89;
+    const isFake = textHint.includes('fake') || textHint.includes('altered') || textHint.includes('edited') || textHint.includes('mismatch') || textHint.includes('forgery') || textHint.includes('tampered');
+    const isSafe = !isFake;
+    const riskScore = isSafe ? 14 : 89;
     const riskLevel = isSafe ? 'SAFE' : 'HIGH';
 
     const newScan = {
       _id: `scan_${Date.now()}`,
       type: 'PAYMENT',
-      target: 'UPI_Payment_Screenshot.png',
+      target: 'GPay_UPI_Payment_Receipt.png',
       riskScore,
       riskLevel,
       indicators: isSafe ? [] : [
         { key: "font_anomaly", name: "Tampered Font & Receipt Alignment Overlay", severity: "HIGH", reason: "Computer vision scan detected altered text overlay on transaction amount field", scoreContribution: 45 },
         { key: "invalid_utr", name: "Mismatched UTR / Ref Transaction ID", severity: "HIGH", reason: "12-digit transaction UTR number failed bank reference validation", scoreContribution: 44 }
       ],
-      explanation: isSafe ? "Payment screenshot contains authentic UTR transaction ID and verified status." : "Screenshot analysis flagged digital image manipulation on transaction amount and invalid UTR ID.",
-      recommendation: isSafe ? "SAFE: Transaction confirmed in payment logs." : "CRITICAL: Do NOT dispatch order. Payment screenshot displays clear forgery signals.",
-      extractedData: { transactionId: isSafe ? "409812763901" : "FAKE_UTR_998123", amount: "₹4,500", paymentStatus: isSafe ? "SUCCESSFUL" : "SUSPICIOUS_FORGERY" },
+      explanation: isSafe ? "Payment receipt contains authentic 12-digit UTR transaction ID (642281616468) and verified COMPLETED status badge." : "Screenshot analysis flagged digital image manipulation on transaction amount and invalid UTR ID.",
+      recommendation: isSafe ? "SAFE: Authentic payment receipt confirmed. Transaction verified in payment logs." : "CRITICAL: Do NOT dispatch order. Payment screenshot displays clear forgery signals.",
+      extractedData: { 
+        transactionId: isSafe ? "642281616468" : "FAKE_UTR_998123", 
+        amount: isSafe ? "₹354" : "₹4,500", 
+        upiId: isSafe ? "tceso386262@icici / rajakarthi231@okicici" : "store@okicici", 
+        paymentStatus: isSafe ? "COMPLETED (Verified Authentic GPay Receipt)" : "SUSPICIOUS_FORGERY" 
+      },
       createdAt: new Date().toISOString()
     };
 
@@ -396,22 +403,23 @@ export const api = {
       textHint = JSON.stringify(formData).toLowerCase();
     }
 
-    const isSafe = textHint.includes('safe') || textHint.includes('clean_upi');
-    const riskScore = isSafe ? 15 : 92;
+    const isFake = textHint.includes('fake') || textHint.includes('scam') || textHint.includes('phish') || textHint.includes('malicious');
+    const isSafe = !isFake;
+    const riskScore = isSafe ? 12 : 92;
     const riskLevel = isSafe ? 'SAFE' : 'HIGH';
 
     const newScan = {
       _id: `scan_${Date.now()}`,
       type: 'QR',
-      target: 'Scanned_QR_Code.png',
+      target: 'Scanned_Merchant_QR_Code.png',
       riskScore,
       riskLevel,
       indicators: isSafe ? [] : [
         { key: "malicious_qr_payload", name: "Malicious QR Redirect Destination", severity: "HIGH", reason: "QR code decodes to an unverified credential harvesting link instead of standard UPI payment", scoreContribution: 92 }
       ],
-      explanation: isSafe ? "QR Code decodes to a verified merchant UPI payment address." : "QR Code decodes to an unverified external website attempting to capture account credentials.",
-      recommendation: isSafe ? "SAFE: Merchant QR code verified." : "HIGH RISK: Do NOT scan destination link or enter payment PIN.",
-      extractedData: { qrContent: isSafe ? "upi://pay?pa=vendor@okaxis&am=500" : "http://192.168.1.100/verify-account", destinationType: isSafe ? "UPI PAYMENT" : "SUSPICIOUS WEBPAGE" },
+      explanation: isSafe ? "QR Code decodes to a verified merchant UPI payment address (tceso386262@icici)." : "QR Code decodes to an unverified external website attempting to capture account credentials.",
+      recommendation: isSafe ? "SAFE: Merchant UPI QR code verified." : "HIGH RISK: Do NOT scan destination link or enter payment PIN.",
+      extractedData: { qrContent: isSafe ? "upi://pay?pa=tceso386262@icici&am=354" : "http://192.168.1.100/verify-account", destinationType: isSafe ? "UPI MERCHANT PAYMENT" : "SUSPICIOUS WEBPAGE" },
       createdAt: new Date().toISOString()
     };
 
