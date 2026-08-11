@@ -10,7 +10,11 @@ from urllib.parse import urlparse
 from risk_engine import calculate_risk
 
 SHORTENER_DOMAINS = ["bit.ly", "tinyurl.com", "t.co", "is.gd", "cutt.ly", "rb.gy", "goo.gl", "ow.ly"]
-SUSPICIOUS_KEYWORDS = ["login", "verify", "secure", "bank", "account", "update", "signin", "free", "gift", "payout", "wallet", "support"]
+SUSPICIOUS_KEYWORDS = [
+    "login", "verify", "secure", "bank", "account", "update", "signin", "free", "gift", 
+    "payout", "wallet", "support", "trade", "trading", "flux", "crypto", "invest", "investment",
+    "fx", "exchange", "profit", "claim", "bonus", "presale", "airdrop", "wealth", "fund", "pay"
+]
 
 def analyze_url(url_string):
     url = url_string.strip()
